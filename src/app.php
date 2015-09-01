@@ -8,6 +8,7 @@ use GraphStory\GraphKit\Service\ContentService;
 use GraphStory\GraphKit\Service\UserService;
 use GraphStory\GraphKit\Slim\JsonResponse;
 use GraphStory\GraphKit\Slim\Middleware\Navigation;
+use Neoxygen\NeoClient\ClientBuilder;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Slim\Middleware\SessionCookie;
@@ -15,20 +16,24 @@ use Slim\Mustache\Mustache;
 use Slim\Slim;
 
 if (getenv('SLIM_MODE') !== 'test') {
-    $neo4jClient = new \Everyman\Neo4j\Client(
-        $config['graphStory']['restHost'],
-        $config['graphStory']['restPort']
-    );
 
-    $neo4jClient->getTransport()->setAuth(
-        $config['graphStory']['restUsername'],
-        $config['graphStory']['restPassword']
-    );
-
+    $httpConnection = 'http';
     if ($config['graphStory']['https']) {
-        $neo4jClient->getTransport()->useHttps();
+        $httpConnection .=  's';
     }
 
+    $neo4jClient = ClientBuilder::create()
+        ->addConnection(
+            'default',
+            $httpConnection,
+            $config['graphStory']['restHost'],
+            $config['graphStory']['restPort'],
+            true,
+            $config['graphStory']['restUsername'],
+            $config['graphStory']['restPassword']
+        )
+        ->setAutoFormatResponse(true)
+        ->build();
     // neo client
     Neo4jClient::setClient($neo4jClient);
 }

@@ -19,10 +19,10 @@ return array(
     // This is a template for the Graph Story connection info you should add
     // to /config/secret.php
     'graphStory' => array(
-        'restUsername' => null,
-        'restPassword' => null,
-        'restHost' => null,
-        'restPort' => null,
-        'https' => null,
+        'restUsername' => '55d0a5557e04b',
+        'restPassword' => '7RCSjJdrAJtkZQEezoMqVIxfZL7QBHpzbq8zOXlF',
+        'restHost' =>  'neo-55d0a5557e04b-364459c455.do-stories.graphstory.com',
+        'restPort' => 7473,
+        'https' => true,
     ),
 );

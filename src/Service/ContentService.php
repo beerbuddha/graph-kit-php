@@ -2,9 +2,8 @@
 
 namespace GraphStory\GraphKit\Service;
 
-use Everyman\Neo4j\Cypher\Query;
-use Everyman\Neo4j\Node;
-use Everyman\Neo4j\Query\ResultSet;
+use Neoxygen\NeoClient\Formatter\Result;
+use Neoxygen\NeoClient\Formatter\Node;
 use GraphStory\GraphKit\Model\Content;
 use GraphStory\GraphKit\Neo4jClient;
 
@@ -220,23 +219,16 @@ CYPHER;
      */
     public static function getContent($username, $skip)
     {
-        $queryString = <<<CYPHER
-MATCH (u:User { username: { u }})-[:FOLLOWS*0..1]->f
+        $queryString = <<<EOF
+MATCH (u:User { username: '$username' })-[:FOLLOWS*0..1]->f
 WITH DISTINCT f, u
 MATCH f-[:CURRENTPOST]-lp-[:NEXTPOST*0..]-p
 RETURN p, f.username as username, f=u as owner
-ORDER BY p.timestamp desc SKIP {skip} LIMIT 4
-CYPHER;
-
-        $query = new Query(
-            Neo4jClient::client(),
-            $queryString,
-            array(
-                'u' => $username,
-                'skip' => $skip,
-            )
-        );
-        $result = $query->getResultSet();
+ORDER BY p.timestamp desc SKIP $skip LIMIT 4
+EOF;
+        $client = Neo4jClient::client();
+        $client->sendCypherQuery($queryString);
+        $result = $client->getResult();
 
         return self::returnMappedContent($result);
     }
@@ -260,11 +252,11 @@ CYPHER;
      * @param  ResultSet $results
      * @return Content[]
      */
-    protected static function returnMappedContent(ResultSet $results)
+    protected static function returnMappedContent(Result $results)
     {
         $mappedContentArray = array();
-
-        foreach ($results as $row) {
+        $nodes = $results->getNodes();
+        foreach ($nodes as $row) {
             $mappedContentArray[] = self::createFromNode(
                 $row['p'],
                 $row['username'],

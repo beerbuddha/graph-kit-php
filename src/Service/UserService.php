@@ -2,11 +2,9 @@
 
 namespace GraphStory\GraphKit\Service;
 
-use Everyman\Neo4j\Cypher\Query;
-use Everyman\Neo4j\Node;
-use Everyman\Neo4j\Query\ResultSet;
 use GraphStory\GraphKit\Model\User;
 use GraphStory\GraphKit\Neo4jClient;
+use Neoxygen\NeoClient\Formatter\Node;
 
 class UserService
 {
@@ -18,14 +16,16 @@ class UserService
      */
     public static function getByUsername($username)
     {
-        $userlabel = Neo4jClient::client()->makeLabel('User');
-        $nodes = $userlabel->getNodes('username', $username);
+        $client = Neo4jClient::client();
+        $client->sendCypherQuery('MATCH (n:User) WHERE n.username = \''.$username.'\' RETURN n');
+        $response = $client->getResult();
+        $nodes = $response->getNodes();
 
         if (empty($nodes) || count($nodes) == 0) {
             return;
         }
 
-        return self::fromNode($nodes[0]);
+        return self::fromNode(array_values($nodes)[0]);
     }
 
     /**
